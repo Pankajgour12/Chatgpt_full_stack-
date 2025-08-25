@@ -2,9 +2,9 @@ const { Server } = require("socket.io");
 const cookie = require("cookie");
 const jwt = require("jsonwebtoken");
 const userModel = require("../models/user.model");
-const {aiService} = require("../services/ai.service");
+const aiService = require("../services/ai.service");
 const messageModel = require("../models/message.model");
-const { createMomory, queryMemory } = require("../services/vector.service");
+const {  queryMemory, createMemory } = require("../services/vector.service");
 
 
 function initSocketServer(httpServer) {
@@ -45,26 +45,61 @@ function initSocketServer(httpServer) {
         // message save to message model
 
 
-        // await messageModel.create({
-        //   user: socket.user._id,
-        //   chat: messagePayload.chat,
-        //   content: messagePayload.content,
-        //   role: "user",
-        // });
+        await messageModel.create({
+          user: socket.user._id,
+          chat: messagePayload.chat,
+          content: messagePayload.content,
+          role: "user",
+        });
 
 
 
         // convert message to vector
 
         const vector = await aiService.generateVector(messagePayload.content);
-        console.log("Message vector:", vector);
+
+
+
+        // console.log("Message vector:", vector);
+
+
+ // remember to preview history in the chat window
+           const memory = await queryMemory({
+           vector: vector,   // ✅ sahi key
+               limit: 5,
+                metadata: {
+                 userId: socket.user._id,
+                
+                 }
+               });
 
 
 
 
 
 
-        
+        // vector messages save to vector database
+            await createMemory({
+              vectors: vector,
+              metadata: {
+                role: "user",
+                userId: socket.user._id,
+                chatId: messagePayload.chat,
+                text: messagePayload.content
+              },
+              messageId: new Date().getTime().toString(),
+            });
+
+
+           
+
+            
+            
+            
+
+
+
+
 
         const chatHistory = (
           await messageModel
@@ -76,25 +111,91 @@ function initSocketServer(httpServer) {
             .lean()
         ).reverse();
 
-        const response = await aiService.generateResponse(
-          chatHistory.map((item) => {
-            return {
-              role: item.role,
-              parts: [{ text: item.content }],
-            };
-          })
-        );
-        // await messageModel.create({
-        //   user: socket.user._id,
-        //   chat: messagePayload.chat,
-        //   content: response,
-        //   role: "model",
-        // });
+
+
+
+          // save to short term memory 
+// -------- Short Term Memory (per chat) --------
+const stm = chatHistory.map((item) => ({
+  role: item.role,
+  parts: [{ text: item.content }],
+}));
+
+// -------- Long Term Memory (cross-chat, user-wise) --------
+const ltm = memory.map((item) => ({
+  role: item.metadata.role || "user",
+  parts: [{ text: item.metadata.text }],
+}));
+
+// -------- Current User Input --------
+const currentInput = {
+  role: "user",
+  parts: [{ text: messagePayload.content }],
+};
+
+// -------- Merge Final Prompt --------
+const finalMessages = [
+  ...ltm,          // long-term memory (user ki purani chats ka relevant data)
+  ...stm,          // short-term memory (isi chat ke last 20 messages)
+  currentInput,    // abhi ka input
+];
+
+             
+
+
+
+
+
+
+
+
+        const response = await aiService.generateResponse(finalMessages);
+
+
+
+
+
+
+
+        await messageModel.create({
+          user: socket.user._id,
+          chat: messagePayload.chat,
+          content: response,
+          role: "model",
+        });
+
+         
+        const responseVector = await aiService.generateVector(response);
+
+        await createMemory({
+          vectors: responseVector,
+          metadata: {
+            role: "model",
+            userId: socket.user._id,
+            chatId: messagePayload.chat,
+            text: response
+          },
+          messageId: new Date().getTime().toString(),
+        });
+
+
+
+
+
+
+
 
         socket.emit("ai-response", {
           contents: response,
           chat: messagePayload.chat,
         });
+
+
+
+console.log("AI response sent:", response);
+
+
+
       } catch (error) {
         console.error("AI socket error:", error);
         socket.emit("ai-response", {

@@ -10,24 +10,42 @@ const cohortChatGptIndex =pc.Index("cohort-chat-gpt");
 
 
 
-async function createMemory({vectors,metadata,messageId}){
-
-    await cohortChatGptIndex.upsert({
+async function createMemory({ vectors, metadata, messageId }) {
+  await cohortChatGptIndex.upsert([
+    {
       id: messageId,
-     values: vectors,
+      values: vectors,
       metadata
-    });
-
+    }
+  ]);
 }
 
-async function queryMemory({queryVector,limit = 5,metadata}){
-    const data  = await cohortChatGptIndex.query({
-        vector: queryVector,
-        topk: limit,
-        filter: metadata ? { metadata } : undefined,
-        includeMetadata: true
-    });
-    return data.matches;
+
+// async function queryMemory({queryVector,limit = 5,metadata}){
+//     const data  = await cohortChatGptIndex.query({
+//         vector: queryVector,
+//         topK: limit,
+//         filter: metadata ? { metadata } : undefined,
+//         includeMetadata: true
+//     });
+//     return data.matches;
+// }
+
+async function queryMemory({ vector, limit = 5, metadata }) {
+  if (!vector || !Array.isArray(vector)) {
+    throw new Error("vector is missing or not an array of numbers");
+  }
+
+  const data = await cohortChatGptIndex.query({
+     vector: vector,
+    topK: limit,
+    filter: metadata || undefined,
+    includeMetadata: true
+  });
+
+  return data.matches;
 }
+
+
 
 module.exports = { createMemory, queryMemory };
