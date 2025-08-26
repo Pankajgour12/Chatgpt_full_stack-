@@ -44,42 +44,18 @@ function initSocketServer(httpServer) {
 
         // message save to message model
 
-
-        await messageModel.create({
-          user: socket.user._id,
-          chat: messagePayload.chat,
-          content: messagePayload.content,
-          role: "user",
-        });
-
-
-
-        // convert message to vector
-
-        const vector = await aiService.generateVector(messagePayload.content);
-
-
-
-        // console.log("Message vector:", vector);
-
-
- // remember to preview history in the chat window
-           const memory = await queryMemory({
-           vector: vector,   // ✅ sahi key
-               limit: 5,
-                metadata: {
-                 userId: socket.user._id,
-                
-                 }
-               });
-
-
-
-
-
-
-        // vector messages save to vector database
-            await createMemory({
+const [savedMessage, vector] = await Promise.all([
+  messageModel.create({
+    user: socket.user._id,
+    chat: messagePayload.chat,
+    content: messagePayload.content,
+    role: "user",
+  }),
+  aiService.generateVector(messagePayload.content),
+   // vector messages save to vector database
+           
+]);
+  createMemory({
               vectors: vector,
               metadata: {
                 role: "user",
@@ -87,29 +63,35 @@ function initSocketServer(httpServer) {
                 chatId: messagePayload.chat,
                 text: messagePayload.content
               },
-              messageId: new Date().getTime().toString(),
-            });
-
-
-           
-
-            
-            
-            
-
-
-
-
-
-        const chatHistory = (
-          await messageModel
-            .find({
-              chat: messagePayload.chat,
+              messageId: savedMessage._id,
             })
-            .sort({ createdAt: -1 })
-            .limit(20)
-            .lean()
-        ).reverse();
+
+
+
+
+
+
+
+
+
+
+ // remember to preview history in the chat window
+          
+      const [ memory, chatHistory] = await Promise.all([
+         queryMemory({
+           vector: vector,   // ✅ sahi key
+               limit: 5,
+                metadata: {
+                 userId: socket.user._id,
+                
+                 }
+               }),
+messageModel
+  .find({ chat: messagePayload.chat })
+  .sort({ createdAt: 1 }) // oldest → newest
+  .limit(20)
+  .lean()
+      ])
 
 
 
@@ -140,33 +122,37 @@ const finalMessages = [
   currentInput,    // abhi ka input
 ];
 
-             
+             const response = await aiService.generateResponse(finalMessages);
 
 
 
+             // Send the response back to the client
+ socket.emit("ai-response", {
+          contents: response,
+          chat: messagePayload.chat,
+        });
 
 
 
-
-
-        const response = await aiService.generateResponse(finalMessages);
-
-
-
-
-
-
-
-        await messageModel.create({
+// Create the response message and vector
+const [responseMessage , responseVector] = await Promise.all([
+  messageModel.create({
           user: socket.user._id,
           chat: messagePayload.chat,
           content: response,
           role: "model",
-        });
+        }),
+        aiService.generateVector(response)
 
-         
-        const responseVector = await aiService.generateVector(response);
 
+  
+]);
+
+
+
+
+
+          // Create the response message and vector in 
         await createMemory({
           vectors: responseVector,
           metadata: {
@@ -175,7 +161,7 @@ const finalMessages = [
             chatId: messagePayload.chat,
             text: response
           },
-          messageId: new Date().getTime().toString(),
+          messageId: responseMessage._id,
         });
 
 
@@ -185,10 +171,7 @@ const finalMessages = [
 
 
 
-        socket.emit("ai-response", {
-          contents: response,
-          chat: messagePayload.chat,
-        });
+       
 
 
 
