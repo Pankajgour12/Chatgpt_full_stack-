@@ -518,8 +518,11 @@ setChats((prev) => [newChat, ...prev]);
    }
 
   
+// Home.jsx
 
-  async function handleSend(e) {
+// ... बाकी का सारा code unchanged ...
+
+async function handleSend(e) {
   e?.preventDefault();
   const text = input.trim();
   if (!text) return;
@@ -532,7 +535,9 @@ setChats((prev) => [newChat, ...prev]);
   if (!cid) {
     try {
       const suggestedTitle = text.length > 40 ? text.slice(0, 40) + '…' : text || 'New chat';
-      const resp = await axios.post('http://localhost:3000/api/chat', { title: suggestedTitle }, { withCredentials: true });
+      const resp = await axios.post('http://localhost:3000/api/chat', { title: suggestedTitle,
+          firstMessage: text 
+       }, { withCredentials: true });
       const created = resp?.data?.chat;
       const newId = created?.id || Date.now().toString();
 
@@ -620,6 +625,10 @@ setChats((prev) => [newChat, ...prev]);
     setBusy(false);
   }
 }
+
+
+// ... बाकी का सारा code unchanged ...
+ 
 
 
  
