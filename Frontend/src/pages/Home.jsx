@@ -137,8 +137,8 @@ const streamInMessage = useCallback(async (chatId, text) => {
   // Progressive reveal: chunk characters for speed and realism
   const total = text.length;
   let idx = 0;
-  const minDelay = 6; // ms per char lower bound (slightly faster)
-  const maxDelay = 20; // ms per char upper bound
+  const minDelay = 1; // ms per char lower bound (slightly faster)
+  const maxDelay = 5; // ms per char upper bound
   while (idx < total) {
     const chunkSize = Math.max(1, Math.floor(1 + Math.random() * 3));
     idx = Math.min(total, idx + chunkSize);
@@ -774,7 +774,7 @@ r.onerror = (event) => {
  
 
   // Text-to-speech helper
-  function speakText(text) {
+  /* function speakText(text) {
     try {
   if (!window.speechSynthesis) return showToast('TTS not supported');
   const utter = new SpeechSynthesisUtterance(text);
@@ -786,7 +786,63 @@ r.onerror = (event) => {
     } catch (e) {
       console.warn('speak failed', e);
     }
+  } */
+
+
+/* function speakText(text) {
+  try {
+    if (!window.speechSynthesis) return showToast('TTS not supported');
+
+    // Emoji ko hatane ke liye regular expression ka use karen
+    // Ye code emojis ko saaf kar dega
+    const cleanText = text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
+
+    const utter = new SpeechSynthesisUtterance(cleanText);
+    // prefer Indian English voice when available
+    utter.lang = 'en-IN';
+    utter.rate = 0.98; // slight slower for clarity
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utter);
+  } catch (e) {
+    console.warn('speak failed', e);
   }
+} */
+
+
+ function speakText(text) {
+  try {
+    if (!window.speechSynthesis) return showToast('TTS not supported');
+
+    // Emoji remove
+    const cleanText = text.replace(
+      /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu,
+      ''
+    );
+
+    if (!cleanText.trim()) return; // sirf emoji ho to skip kar do
+
+    const utter = new SpeechSynthesisUtterance(cleanText);
+
+    // Agar Hindi words jyada hain to Hindi voice use karo
+    const hasHindi = /[\u0900-\u097F]/.test(cleanText);
+
+    if (hasHindi) {
+      utter.lang = 'hi-IN'; // Hindi
+      utter.rate = 1;       // thoda natural
+    } else {
+      utter.lang = 'en-IN'; // Indian English
+      utter.rate = 1;    // thoda slow for clarity
+    }
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utter);
+  } catch (e) {
+    console.warn('speak failed', e);
+  }
+}
+
+
+
 
   // Export / Import chats
 
