@@ -1,0 +1,161 @@
+/* 🌌 Background Animation */
+body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  /* background: linear-gradient(-45deg, #051f20, #372d40, #274941, #5d493d); */
+  background-size: 400% 400%;
+  animation: gradientShift 12s ease infinite;
+  color: #fff;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Center form */
+.form-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* Glass card */
+.form-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+  box-shadow: 0 0 25px rgba(0, 255, 200, 0.2);
+  animation: fadeInUp 1.2s ease;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.form-title {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.form-subtitle {
+  font-size: 0.9rem;
+  color: #cbd5e1;
+  margin-bottom: 1.5rem;
+}
+
+/* Inputs */
+.input-group {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 1rem;
+}
+
+.input-group label {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  color: #aaa;
+  transition: 0.3s ease;
+  pointer-events: none;
+}
+
+.input-group input:focus + label,
+.input-group input:valid + label {
+  top: -8px;
+  left: 10px;
+  font-size: 0.75rem;
+  color: #38bdf8;
+}
+
+/* Password strength */
+.strength {
+  height: 4px;
+  margin-top: 6px;
+  border-radius: 4px;
+  transition: 0.3s ease;
+}
+.strength.weak { background: red; width: 33%; }
+.strength.medium { background: orange; width: 66%; }
+.strength.strong { background: lime; width: 100%; }
+
+/* Toggle eye */
+.toggle-pass {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+/* Terms */
+.terms {
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+  margin-bottom: 1.2rem;
+  text-align: left;
+}
+
+.terms input {
+  margin-right: 8px;
+}
+
+.terms a {
+  color: #38bdf8;
+  text-decoration: underline;
+}
+
+/* Button */
+.btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #06b6d4, #f63b3b);
+
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+  transition: 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(56, 248, 123, 0.6);
+}
+
+.switch-text {
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+}
+
+.switch-text a {
+  color: #38bdf8;
+  font-weight: bold;
+}
+ 

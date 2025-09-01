@@ -80,8 +80,30 @@ res.status(200).json({
 
 
 
+async function getMe(req, res) {
+    try {
+        const user = req.user;
+        if (!user) return res.status(401).json({ message: 'Not authenticated' });
+        res.status(200).json({ user: { id: user._id, fullName: user.fullName, email: user.email } });
+    } catch (e) {
+        console.error('getMe error', e);
+        res.status(500).json({ message: 'Server error' });
+    }
+}
 
 module.exports = {
     registerUser,
-    loginUser
+    loginUser,
+    getMe
 };
+
+async function logoutUser(req, res) {
+    try {
+        res.clearCookie('token');
+        res.status(200).json({ message: 'Logged out' });
+    } catch (e) {
+        res.status(500).json({ message: 'Logout failed' });
+    }
+}
+
+module.exports.logoutUser = logoutUser;

@@ -8,12 +8,17 @@ const {  queryMemory, createMemory } = require("../services/vector.service");
 
 
 function initSocketServer(httpServer) {
-  const io = new Server(httpServer, {});
+  const io = new Server(httpServer, {
+    cors: {
+      origin: ['http://localhost:5173'],
+      credentials: true,
+    },
+  });
 
   io.use(async (socket, next) => {
     const cookies = cookie.parse(socket.handshake.headers?.cookie || "");
 
-    console.log("Socket connection cookies ");
+    // console.log("Socket connection cookies ");
 
     if (!cookies.token) {
       next(new Error("Authentication error: No token provided"));
@@ -40,16 +45,16 @@ function initSocketServer(httpServer) {
     } */
 
       try {
-        console.log("Message from client:", messagePayload);
+        // console.log("Message from client:", messagePayload);
 
         // message save to message model
 
 const [savedMessage, vector] = await Promise.all([
   messageModel.create({
-    user: socket.user._id,
-    chat: messagePayload.chat,
-    content: messagePayload.content,
-    role: "user",
+  user: socket.user._id,
+  chat: messagePayload.chat,
+  content: messagePayload.content,
+  role: "user",
   }),
   aiService.generateVector(messagePayload.content),
    // vector messages save to vector database
@@ -110,10 +115,10 @@ const ltm = memory.map((item) => ({
 }));
 
 // -------- Current User Input --------
-const currentInput = {
+ const currentInput = {
   role: "user",
   parts: [{ text: messagePayload.content }],
-};
+}; 
 
 // -------- Merge Final Prompt --------
 const finalMessages = [
@@ -175,7 +180,7 @@ const [responseMessage , responseVector] = await Promise.all([
 
 
 
-console.log("AI response sent:", response);
+// console.log("AI response sent:", response);
 
 
 
