@@ -30,7 +30,7 @@ function ProtectedHome(){
   const [ok, setOk] = React.useState(null);
   React.useEffect(()=>{
     let mounted = true;
-    axios.get('http://localhost:3000/api/auth/me', { withCredentials: true }).then(()=>{ if(mounted) setOk(true) }).catch(()=>{ if(mounted) setOk(false) });
+    axios.get('https://chatgpt-full-stack.onrender.com/api/auth/me', { withCredentials: true }).then(()=>{ if(mounted) setOk(true) }).catch(()=>{ if(mounted) setOk(false) });
     return ()=> mounted = false;
   },[]);
   if (ok === null) return <div style={{minHeight:200}}/>; // small loading placeholder

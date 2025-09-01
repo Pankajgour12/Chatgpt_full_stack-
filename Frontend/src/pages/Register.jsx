@@ -33,7 +33,7 @@ const navigate = useNavigate();
     }
 
     try {
-      const res = await axios.post("http://localhost:3000/api/auth/register", {
+      const res = await axios.post("https://chatgpt-full-stack.onrender.com/api/auth/register", {
         fullName: {
           firstName: formData.firstName,
           lastName: formData.lastName,

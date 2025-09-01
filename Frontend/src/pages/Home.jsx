@@ -66,7 +66,7 @@ export default function Home() {
   useEffect(() => { chatsRef.current = chats; }, [chats]);
 const fetchChats = useCallback(async () => {
   try {
-    const res = await axios.get("http://localhost:3000/api/chat", {
+    const res = await axios.get("https://chatgpt-full-stack.onrender.com/api/chat", {
       withCredentials: true
     });
 
@@ -157,7 +157,7 @@ useEffect(() => {
   fetchChats();
   // init socket once
   try {
-    const s = io('http://localhost:3000', { withCredentials: true });
+    const s = io('https://chatgpt-full-stack.onrender.com', { withCredentials: true });
     socketRef.current = s;
     s.on('connect', () => console.log('socket connected', s.id));
   s.on('ai-response', (payload) => {
@@ -189,7 +189,7 @@ function updateMessageInChat(chatId, msgId, newContent, extra = {}) {
 useEffect(() => {
   (async () => {
     try {
-      const resp = await axios.get('http://localhost:3000/api/auth/me', { withCredentials: true });
+      const resp = await axios.get('https://chatgpt-full-stack.onrender.com/api/auth/me', { withCredentials: true });
       if (resp?.data?.user) {
         const u = resp.data.user;
         const name = (u.fullName && (u.fullName.firstName || u.fullName.lastName)) ? `${u.fullName.firstName || ''} ${u.fullName.lastName || ''}`.trim() : (u.email || 'User');
@@ -287,7 +287,7 @@ useEffect(() => {
   function logout() {
     (async () => {
       try {
-        await axios.post('http://localhost:3000/api/auth/logout', {}, { withCredentials: true });
+        await axios.post('https://chatgpt-full-stack.onrender.com/api/auth/logout', {}, { withCredentials: true });
       } catch (e) { console.warn('logout failed', e); }
       lsSet('cgpt_user', null);
       lsSet('user', null);
@@ -339,7 +339,7 @@ async function createNewChat() {
     }
 
     // Backend request
-    const res = await axios.post("http://localhost:3000/api/chat", {
+    const res = await axios.post("https://chatgpt-full-stack.onrender.com/api/chat", {
       title
     }, {
       withCredentials: true   // agar cookie/session auth use kar rahe ho
@@ -372,7 +372,7 @@ setChats((prev) => [newChat, ...prev]);
     // Try to delete chats on backend (best-effort). Use Promise.allSettled so one failure doesn't block others.
     (async () => {
       try {
-        const deletes = (chats || []).map((c) => axios.delete(`http://localhost:3000/api/chat/${c.id}`, { withCredentials: true }).catch((err) => err));
+        const deletes = (chats || []).map((c) => axios.delete(`https://chatgpt-full-stack.onrender.com/api/chat/${c.id}`, { withCredentials: true }).catch((err) => err));
         await Promise.allSettled(deletes);
       } catch (err) {
         console.warn('Error deleting chats on server (ignored):', err);
@@ -396,7 +396,7 @@ setChats((prev) => [newChat, ...prev]);
     // best-effort: try to delete on backend if route exists
     (async () => {
       try {
-        await axios.delete(`http://localhost:3000/api/chat/${id}`, { withCredentials: true });
+        await axios.delete(`https://chatgpt-full-stack.onrender.com/api/chat/${id}`, { withCredentials: true });
       } catch (e) {
         // ignore: backend may not support delete; keep optimistic UI
         console.warn('deleteChat backend call failed (ok if unsupported)', e);
@@ -535,7 +535,7 @@ async function handleSend(e) {
   if (!cid) {
     try {
       const suggestedTitle = text.length > 40 ? text.slice(0, 40) + '…' : text || 'New chat';
-      const resp = await axios.post('http://localhost:3000/api/chat', { title: suggestedTitle,
+      const resp = await axios.post('https://chatgpt-full-stack.onrender.com/api/chat', { title: suggestedTitle,
           firstMessage: text 
        }, { withCredentials: true });
       const created = resp?.data?.chat;
@@ -1037,7 +1037,7 @@ r.onerror = (event) => {
                     createdChatRef.current = true;
                     const suggestedTitle = v.length > 40 ? v.slice(0,40) + '…' : (v || 'New chat');
                     try {
-                      const resp = await axios.post('http://localhost:3000/api/chat', { title: suggestedTitle }, { withCredentials: true });
+                      const resp = await axios.post('https://chatgpt-full-stack.onrender.com/api/chat', { title: suggestedTitle }, { withCredentials: true });
                       const created = resp?.data?.chat;
                       const newId = String(created?.id || created?._id || Date.now().toString());
                       const newChat = { id: newId, title: created?.title || suggestedTitle, createdAt: created?.createdAt ? Number(new Date(created.createdAt)) : Date.now(), messages: [], pinned: false };
